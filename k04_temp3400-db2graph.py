@@ -183,5 +183,8 @@ plt.text(np.max(data_o['measuredatetime']), mean_o+(range_all / 28), mean_o_text
 mean_w_text = 'Mw. ' + format(round(mean_w,1), '.1f') + ' (' + format(round(mean_w - mean_w_b24,1), '.1f') + ')'
 plt.text(np.max(data_w['measuredatetime']), mean_w+(range_all / 28)+(timesequ/10), mean_w_text, color = 'b', bbox = props, ha = 'right')
 
+plt.text(np.min(data_w['measuredatetime']), mean_w+(range_all / 28)+(timesequ/10), "GitTest", color = 'k', bbox = props, ha = 'right')
+
+
 pltname = '/tmp/temp'+str(timesequ)+'.png'
 plt.savefig(pltname)
