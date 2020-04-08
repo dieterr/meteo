@@ -35,28 +35,21 @@ def db_connect():
 
 mdb_conn = db_connect()
 
-mcursor_parameter = mdb_conn.cursor()
-sql_select_query_parameter = "SELECT * FROM parameter;"
-mcursor_parameter.execute(sql_select_query_parameter)
-mrecords_parameter = mcursor_parameter.fetchall()
-
-#testing
-print(mrecords_parameter)
-#sys.exit("Test-Stop: parameters list from db")
+mcursor_sensor = mdb_conn.cursor()
+sql_select_query_sensor = "SELECT * FROM sensor;"
+mcursor_sensor.execute(sql_select_query_sensor)
+mrecords_sensor = mcursor_sensor.fetchall()
+#print(mrecords_sensor)
 
 
-importdata = pd.read_csv("~/data/datscha/all/am2601-datscha_all.txt", sep=";", header=None, names=['parameter', 'sensor', 'timestamp', 'measure'])
 
-for rows_parameter in mrecords_parameter:
-    print(rows_parameter[0])
-    print(importdata['sensor'])#==rows_parameter[0])
-    is_parameter = importdata['parameter']==rows_parameter[0]
-    importdata_parameter = importdata[is_parameter]
+importdata = pd.read_csv("~/data/datscha/all/temp-datscha3S_512_topnew.txt", sep=";", header=None, names=['sensor', 'timestamp', 'measure'])
 
-    #testing
-    print("list:", importdata_parameter['timestamp'])
-    print(importdata_parameter)
-    continue
+for rows_sensor in mrecords_sensor:
+    is_sensor = importdata['sensor']==rows_sensor[1]
+    importdata_sensor = importdata[is_sensor]
+    #print("list:", importdata_sensor['timestamp'])
+    #print(importdata_sensor)
 
     mcursor_measurement = mdb_conn.cursor()
     sql_select_query_measurement = """SELECT MAX(measuredatetime) FROM measurement WHERE sensor_id = %s;"""
