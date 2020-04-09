@@ -92,8 +92,13 @@ mean_w_b24 = np.mean(data_w_b24['temp'])
 max_i = np.max(data_i['temp'])
 max_o = np.max(data_o['temp'])
 max_w = np.max(data_w['temp'])
+max_i_b24 = np.max(data_i_b24['temp'])
+max_o_b24 = np.max(data_i_b24['temp'])
+max_w_b24 = np.max(data_i_b24['temp'])
 min_all = np.min([min_i, min_o, min_w])
 max_all = np.max([max_i, max_o, max_w])
+
+
 
 range_all = max_all - min_all
 range_hours = timesequ * 24
@@ -159,22 +164,31 @@ if min_o > 0:
     ax.set_ylim(0)
 
 plt.hlines(np.min(data_i['temp']), np.min(data_i['measuredatetime']), np.max(data_i['measuredatetime']), linestyle = '--', color = 'g')
+plt.hlines(np.max(data_i['temp']), np.min(data_i['measuredatetime']), np.max(data_i['measuredatetime']), linestyle = 'solid', color = 'g')
 min_i_text = 'Min. ' + format(round(min_i,1), '.1f') + ' (' + format(round(min_i - min_i_b24,1), '.1f') + ')'
+max_i_text = 'Max. ' + format(round(max_i,1), '.1f') + ' (' + format(round(max_i - max_i_b24,1), '.1f') + ')'
 plt.text(np.min(data_i['measuredatetime']), np.min(data_i['temp'])-(range_all / 18), min_i_text, color = 'g', bbox = props)
+plt.text(np.min(data_i['measuredatetime']), np.max(data_i['temp'])+(range_all / 18), max_i_text, color = 'g', bbox = props)
 
 plt.hlines(np.min(data_o['temp']), np.min(data_o['measuredatetime']), np.max(data_o['measuredatetime']), linestyle = '--', color = 'm')
+plt.hlines(np.max(data_o['temp']), np.min(data_o['measuredatetime']), np.max(data_o['measuredatetime']), linestyle = 'solid', color = 'm')
 min_o_text = 'Min. ' + format(round(min_o,1), '.1f') + ' (' + format(round(min_o - min_o_b24,1), '.1f') + ')'
+max_o_text = 'Max. ' + format(round(max_o,1), '.1f') + ' (' + format(round(max_o - max_o_b24,1), '.1f') + ')'
 plt.text(np.min(data_o['measuredatetime']), np.min(data_o['temp'])-(range_all / 18), min_o_text, color = 'm', bbox = props, ha = 'left')
+plt.text(np.min(data_o['measuredatetime']), np.max(data_o['temp'])+(range_all / 18), max_o_text, color = 'm', bbox = props, ha = 'left')
 
 plt.hlines(np.min(data_w['temp']), np.min(data_w['measuredatetime']), np.max(data_w['measuredatetime']), linestyle = '--', color = 'b')
+plt.hlines(np.max(data_w['temp']), np.min(data_w['measuredatetime']), np.max(data_w['measuredatetime']), linestyle = 'solid', color = 'b')
 min_w_text = 'Min. ' + format(round(min_w,1), '.1f') + ' (' + format(round(min_w - min_w_b24,1), '.1f') + ')'
+max_w_text = 'Max. ' + format(round(max_w,1), '.1f') + ' (' + format(round(max_w - max_w_b24,1), '.1f') + ')'
 plt.text(np.min(data_w['measuredatetime']), np.min(data_w['temp'])-(range_all / 18), min_w_text, color = 'b', bbox = props, ha = 'left')
+plt.text(np.min(data_w['measuredatetime']), np.max(data_w['temp'])+(range_all / 18), max_w_text, color = 'b', bbox = props, ha = 'left')
 
 
 plt.hlines(mean_i, np.min(data_i['measuredatetime']), np.max(data_i['measuredatetime']), linestyle = ':', color = 'g')
 plt.hlines(mean_o, np.min(data_o['measuredatetime']), np.max(data_o['measuredatetime']), linestyle = ':', color = 'm')
 plt.hlines(mean_w, np.min(data_w['measuredatetime']), np.max(data_w['measuredatetime']), linestyle = ':', color = 'b')
-plt.axhline(0, color = 'k', linewidth = 0.5)
+#plt.axhline(0, color = 'k', linewidth = 0.5)
 
 mean_i_text = 'Mw. ' + format(round(mean_i,1), '.1f') + ' (' + format(round(mean_i - mean_i_b24,1), '.1f') + ')'
 plt.text(np.max(data_i['measuredatetime']), mean_i+(range_all / 28), mean_i_text, color = 'g', bbox = props, ha = 'right')
