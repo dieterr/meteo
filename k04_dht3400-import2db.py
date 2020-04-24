@@ -45,17 +45,23 @@ print(mrecords_parameter)
 #sys.exit("Test-Stop: parameters list from db")
 
 
-importdata = pd.read_csv("~/data/datscha/all/am2601-datscha_all.txt", sep=";", header=None, names=['parameter', 'sensor', 'timestamp', 'measure'])
+importdata = pd.read_csv("~/data/datscha/all/am2601-datscha_all_test.txt", sep=";", header=None, names=['parameter', 'sensor', 'timestamp', 'measure', 'bla'])
+
+print(importdata)
+
+for rows_importdata in importdata:
+    print(rows_importdata[0])
+
 
 for rows_parameter in mrecords_parameter:
-    print(rows_parameter[0])
-    print(importdata['sensor'])#==rows_parameter[0])
+    #print(rows_parameter[0])
+    #print(importdata['sensor'])#==rows_parameter[0])
     is_parameter = importdata['parameter']==rows_parameter[0]
     importdata_parameter = importdata[is_parameter]
 
     #testing
-    print("list:", importdata_parameter['timestamp'])
-    print(importdata_parameter)
+    #print("list:", importdata_parameter['timestamp'])
+    #print(importdata_parameter)
     continue
 
     mcursor_measurement = mdb_conn.cursor()
