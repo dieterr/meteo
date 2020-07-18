@@ -55,7 +55,7 @@ if humidity is not None and temperature is not None:
     fobj.write("1" + ";" + "am2601" + str(chip_id) + ";" + str(timestamp) + ";" + str(round(temperature, 1)) + ";" + "\n" + "2" + ";" + "am2601" + str(chip_id) + ";" + str(timestamp) + ";" + str(round(humidity,1)) + ";" + "\n")
     
 else:
-    print('Failed to get reading. Try again!')
+    #print('Failed to get reading. Try again!')
     fobj.write("Failed to get reading. Try again!\n")
     sys.exit(1)
 
