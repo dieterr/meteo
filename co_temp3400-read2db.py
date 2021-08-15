@@ -52,7 +52,7 @@ def db_connect():
     try:
         host = 'localhost'
         cred = netrc.netrc().authenticators(host)
-        print(cred)
+        #print(cred)
         mdb_conn = mariadb.connect(host, cred[0], cred[2], 'meteodb')
 
     except:
@@ -76,7 +76,7 @@ def read_sensorlist():
 
 # ab hier Multithreading umsetzen
 for sensor in sensor_list:
-    #print(len(sensor))
+    print(sensor)
     device_folder = base_dir + "/" + str(sensor)
     #print(device_folder)
     device_file = device_folder + "/w1_slave"
