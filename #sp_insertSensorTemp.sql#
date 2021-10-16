@@ -1,14 +1,14 @@
 DELIMITER //
 
 CREATE OR REPLACE PROCEDURE meteodb.insert_temp_records(
-  sensornameIn VARCHAR(50),
-  measuredatetimeIn DATETIME,
-  parameteridIn SMALLINT(5),
+  sensorNameIn VARCHAR(50),
+  measureDatetimeIn DATETIME,
+  parameterIdIn SMALLINT(5),
   measureIn DECIMAL(4,1)
   )
 BEGIN
 
-SET @sensorId = 'test';
+SET @sensorId = SELECT fn_getSensorId('10-000802a827d4');
 SET @toUpdate = 0;
 
 SELECT @sensorId;
@@ -36,7 +36,7 @@ END;
 
 DELIMITER ;
 
-/*
+
 select routine_schema as meteodb,
        routine_name,
        routine_type as type,
@@ -47,4 +47,3 @@ where routine_schema not in ('sys', 'information_schema',
        'mysql', 'performance_schema')
        -- and r.routine_schema = 'database_name' -- put your database name here
 order by routine_schema, routine_name;
-*/
