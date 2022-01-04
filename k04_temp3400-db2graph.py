@@ -3,6 +3,7 @@
 
 import netrc
 from pandas import read_sql_query as pdrsq
+#from pandas import DataFrame, Timestamp
 import numpy as np 
 import MySQLdb as mariadb
 import matplotlib
@@ -25,7 +26,7 @@ def db_connect():
     return mdb_conn
 
 def read_db_hours(id, ti):
-    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i ORDER BY measuredatetime DESC LIMIT %s;" %(id, ti), mdb_conn)
+    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 ORDER BY measuredatetime DESC LIMIT %s;" %(id, ti), mdb_conn)
     df.columns = ['measuredatetime', 'temp']
     #print(df)
     return df
@@ -63,6 +64,9 @@ data_i_b24 = read_db_hours(id, likedhours[1])
 id = 1
 data_o = read_db_hours(id, likedhours[0])
 data_o_b24 = read_db_hours(id, likedhours[1])
+#data_o_roll = DataFrame(read_db_hours(id, likedhours[1]))
+#data_o_roll.set_index(measuredatetime)
+#.resample('1D').mean()
 
 id = 3
 data_w = read_db_hours(id, likedhours[0])
@@ -135,24 +139,24 @@ if timesequ <= 2:
     ax.xaxis.set_major_formatter(h_fmt1)
 #    ax.xaxis.set_minor_locator(days)
 #    ax.xaxis.set_minor_formatter(d_fmt)
-elif timesequ <= 7:
+elif timesequ <= 14:
     days = mdates.DayLocator(interval = 1)
     hours = mdates.HourLocator(byhour=[6,12,18])
     titletxt = 'die letzten '+str(timesequ)+' Tage:'
     ax.xaxis.set_major_locator(days)
     ax.xaxis.set_major_formatter(d_fmt)
-
 else:
-    days = mdates.DayLocator(interval = 3)
-    hours = mdates.HourLocator(byhour=[6,12,18])
+#    days = mdates.DayLocator(interval = 3)
+#    hours = mdates.HourLocator(byhour=[6,12,18])
     titletxt = 'die letzten '+str(timesequ)+' Tage:'
-    ax.xaxis.set_major_locator(days)
-    ax.xaxis.set_major_formatter(d_fmt)
+#    ax.xaxis.set_major_locator(days)
+#    ax.xaxis.set_major_formatter(d_fmt)
 #    ax.xaxis.set_minor_locator(hours)
 #    ax.xaxis.set_minor_formatter(h_fmt2)
 
 plt.title(titletxt)
-plt.xlabel('Zeit')
+plt.xlabel(' ')
+#plt.xticks([])
 plt.ylabel('Temperatur (' + u'\N{DEGREE SIGN}' + 'C)')
 ax.get_legend().remove()
 props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=0.7)
