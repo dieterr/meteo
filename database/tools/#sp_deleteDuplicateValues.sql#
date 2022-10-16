@@ -80,6 +80,10 @@ SELECT resultL.*, basicL.*
 FROM resultL
 LEFT JOIN basicL ON resultL.rid = basicL.idid;
 
+UPDATE measurement
+SET isDeleted = 1
+WHERE 
+
 DROP TABLE basicL;
 DROP TABLE resultL;
 

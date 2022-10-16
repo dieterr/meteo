@@ -3,6 +3,7 @@
 
 import netrc
 from pandas import read_sql_query as pdrsq
+#from pandas import DataFrame, Timestamp
 import numpy as np 
 import MySQLdb as mariadb
 import matplotlib
@@ -11,6 +12,9 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import decimal
 import sys
+import calendar
+from datetime import date
+from datetime import datetime
 
 ## set up database connection
 def db_connect():
@@ -24,15 +28,44 @@ def db_connect():
 
     return mdb_conn
 
-def read_db_hours(id, ti):
-    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 ORDER BY measuredatetime DESC LIMIT %s;" %(id, ti), mdb_conn)
+def read_db_hours(id):
+    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 AND measuredatetime BETWEE\
+N NOW() - INTERVAL %s HOUR AND NOW() ORDER BY measuredatetime;" %(id), mdb_conn)
     df.columns = ['measuredatetime', 'temp']
     #print(df)
     return df
 
 
-#def
+def read_db_hours_i(id, ti):
+    df = pdrsq("SELECT measuredatetime, AVG(measure) FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 AND measuredatetime BETWEEN NOW() - INTERVAL %s HOUR AND NOW() GROUP BY hour(measuredatetime), day (measuredatetime) ORDER BY measuredatetime;" %(id, ti), mdb_conn)#, index_col=['measuredatetime'])
+    df.columns = ['measuredatetime','temp']
+    #print(df)
+    return df
 
+
+def getDaysOfYear():
+    
+    # Return true if year is a multiple
+    # of 4 and not multiple of 100.
+    # OR year is multiple of 400.
+    endfeb_str = str(date.today().year) + '-02-28'
+    print(endfeb_str)
+    print(date.today())
+    if datetime.now() > datetime.strptime(endfeb_str, '%Y-%m-%d'):
+        year = date.today().year
+        print('greater ' + endfeb_str)
+    else:
+        year = date.today().year - 1
+
+    if calendar.isleap(year):
+        daysOfYear = 366
+    else:
+        daysOfYear = 365
+    
+    print(year)
+    return(daysOfYear)
+
+print(getDaysOfYear())
 
 
 #print('Number of arguments:', len(sys.argv), 'arguments.')
@@ -45,7 +78,7 @@ timesequ = int(sys.argv[1])
 
 likedhours1 = timesequ * 24 * 4 
 likedhours = [str(likedhours1), str(likedhours1)+','+str(likedhours1)]
-#print('test', likedhours)
+print('test', likedhours)
 #mdb_conn = None
 mdb_conn = db_connect()
 #print(mdb_conn)
@@ -56,13 +89,24 @@ mdb_conn = db_connect()
 
 
 ##get data
+id = 1
+
+if timesequ > 6:
+    #print(data_o_i)
+    data_o = read_db_hours_i(id, likedhours[0])
+else:
+    data_o = read_db_hours(id, likedhours[0])
+
+data_o_b24 = read_db_hours(id, likedhours[1])
+min_datetime_o = str(np.min(data_o['measuredatetime']))
+max_datetime_o = str(np.max(data_o['measuredatetime']))
+print(min_datetime_o, max_datetime_o)
+
+
+
 id = 2
 data_i = read_db_hours(id, likedhours[0])
 data_i_b24 = read_db_hours(id, likedhours[1])
-
-id = 1
-data_o = read_db_hours(id, likedhours[0])
-data_o_b24 = read_db_hours(id, likedhours[1])
 
 id = 3
 data_w = read_db_hours(id, likedhours[0])
@@ -135,19 +179,18 @@ if timesequ <= 2:
     ax.xaxis.set_major_formatter(h_fmt1)
 #    ax.xaxis.set_minor_locator(days)
 #    ax.xaxis.set_minor_formatter(d_fmt)
-elif timesequ <= 7:
+elif timesequ <= 30:
     days = mdates.DayLocator(interval = 1)
     hours = mdates.HourLocator(byhour=[6,12,18])
     titletxt = 'die letzten '+str(timesequ)+' Tage:'
     ax.xaxis.set_major_locator(days)
     ax.xaxis.set_major_formatter(d_fmt)
-
 else:
-    days = mdates.DayLocator(interval = 3)
-    hours = mdates.HourLocator(byhour=[6,12,18])
+#    days = mdates.DayLocator(interval = 3)
+#    hours = mdates.HourLocator(byhour=[6,12,18])
     titletxt = 'die letzten '+str(timesequ)+' Tage:'
-    ax.xaxis.set_major_locator(days)
-    ax.xaxis.set_major_formatter(d_fmt)
+#    ax.xaxis.set_major_locator(days)
+#    ax.xaxis.set_major_formatter(d_fmt)
 #    ax.xaxis.set_minor_locator(hours)
 #    ax.xaxis.set_minor_formatter(h_fmt2)
 

@@ -28,92 +28,74 @@ def db_connect():
 
     return mdb_conn
 
-def read_db_hours(id, ti):
-    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 ORDER BY measuredatetime DESC LIMIT %s;" %(id, ti), mdb_conn)
+def read_db_hours(id, ti1, ti2):
+    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 AND measuredatetime BETWEE\
+N NOW() - INTERVAL %s HOUR AND NOW() - INTERVAL %s HOUR ORDER BY measuredatetime;" %(id, ti1, ti2), mdb_conn)
     df.columns = ['measuredatetime', 'temp']
     #print(df)
     return df
 
 
-def read_db_hours_i(id, StartDt, EndDt):
-    #df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = 1 AND isDeleted = 0 AND measuredatetime BETWEEN DATE_ADD(%s, INTERVAL '-1' YEAR) AND DATE_ADD(%e, INTERVAL '-1' YEAR) ORDER BY measuredatetime;" %(StartDt, EndDt), mdb_conn, index_col=['measuredatetime'])
-    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = 1 AND isDeleted = 0 AND measuredatetime BETWEEN %s AND %e ORDER BY measuredatetime;" %(StartDt, EndDt), mdb_conn, index_col=['measuredatetime'])
-    #df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = 1 AND isDeleted = 0 AND measuredatetime BETWEEN '2021-05-17 19:15:04' AND '2021-05-24 19:00:04' ORDER BY measuredatetime;", mdb_conn, index_col=['measuredatetime'])
-    df.columns = ['temp']
+def read_db_hours_avg(id, ti1, ti2):
+    df = pdrsq("SELECT measuredatetime, AVG(measure) FROM measurement WHERE parameter_id = 1 AND sensor_id = %s AND isDeleted = 0 AND measuredatetime BETWEEN NOW() - INTERVAL %s HOUR AND NOW() - INTERVAL %s HOUR GROUP BY hour(measuredatetime), day (measuredatetime) ORDER BY measuredatetime;" %(id, ti1, ti2), mdb_conn)#, index_col=['measuredatetime'])
+    df.columns = ['measuredatetime','temp']
     #print(df)
     return df
 
 
-def getDaysOfYear():
-    
-    # Return true if year is a multiple
-    # of 4 and not multiple of 100.
-    # OR year is multiple of 400.
-    endfeb_str = str(date.today().year) + '-02-28'
-    print(endfeb_str)
-    print(date.today())
-    if datetime.now() > datetime.strptime(endfeb_str, '%Y-%m-%d'):
-        year = date.today().year
-        print('greater ' + endfeb_str)
-    else:
-        year = date.today().year - 1
+mdb_conn = db_connect()
 
-    if calendar.isleap(year):
-        daysOfYear = 366
-    else:
-        daysOfYear = 365
-    
-    print(year)
-    return(daysOfYear)
 
-print(getDaysOfYear())
-
+#Input days
+timesequ = int(sys.argv[1])
 
 #print('Number of arguments:', len(sys.argv), 'arguments.')
 #print('Argument List:', str(sys.argv))
 #print('Argument List1:', str(sys.argv[1]))
 
-#Input days
-timesequ = int(sys.argv[1])
-#print('timesequ: ', timesequ)
 
-likedhours1 = timesequ * 24 * 4 
-likedhours = [str(likedhours1), str(likedhours1)+','+str(likedhours1)]
-print('test', likedhours)
-#mdb_conn = None
-mdb_conn = db_connect()
-#print(mdb_conn)
-##print results
-#likedhours = ['96', '96,96']
-#print('orig: ',likedhours)
+#Calculate timeframes
+likedHoursStart = timesequ * 24
+likedHoursEnd = 0
 
+likedHoursStartBefore = 2 * timesequ * 24
+likedHoursEndBefore = timesequ * 24
 
-
+   
 ##get data
 id = 1
-data_o = read_db_hours(id, likedhours[0])
-data_o_b24 = read_db_hours(id, likedhours[1])
-min_datetime_o = str(np.min(data_o['measuredatetime']))
-max_datetime_o = str(np.max(data_o['measuredatetime']))
-print(min_datetime_o, max_datetime_o)
 
 if timesequ > 6:
-    #print(data_o_i)
-    data_o_i = read_db_hours_i(id, min_datetime_o, max_datetime_o)
-    data_o_r = data_o_i.resample('H').mean()
-    print(data_o_r)
+    data_o = read_db_hours_avg(id, likedHoursStart, likedHoursEnd)
+    data_o_b24 = read_db_hours_avg(id, likedHoursStartBefore, likedHoursEndBefore)
+else:
+    data_o = read_db_hours(id, likedHoursStart, likedHoursEnd)
+    data_o_b24 = read_db_hours(id, likedHoursStartBefore, likedHoursEndBefore)
+
+
+min_datetime_o = str(np.min(data_o['measuredatetime']))
+max_datetime_o = str(np.max(data_o['measuredatetime']))
+
 
 id = 2
-data_i = read_db_hours(id, likedhours[0])
-data_i_b24 = read_db_hours(id, likedhours[1])
+
+if timesequ > 6:
+    data_i = read_db_hours_avg(id, likedHoursStart, likedHoursEnd)
+    data_i_b24 = read_db_hours_avg(id, likedHoursStartBefore, likedHoursEndBefore)
+else:
+    data_i = read_db_hours(id, likedHoursStart, likedHoursEnd)
+    data_i_b24 = read_db_hours(id, likedHoursStartBefore, likedHoursEndBefore)
+
 
 id = 3
-data_w = read_db_hours(id, likedhours[0])
-data_w_b24 = read_db_hours(id, likedhours[1])
 
+if timesequ > 6:
+    data_w = read_db_hours_avg(id, likedHoursStart, likedHoursEnd)
+    data_w_b24 = read_db_hours_avg(id, likedHoursStartBefore, likedHoursEndBefore)
+else:
+    data_w = read_db_hours(id, likedHoursStart, likedHoursEnd)
+    data_w_b24 = read_db_hours(id, likedHoursStartBefore, likedHoursEndBefore)
 
-#print(data_i)
-#print(data_o)
 
 #data_i_array() = np.asarray(data_i)
 #export txt-files
@@ -145,39 +127,25 @@ max_all = np.max([max_i, max_o, max_w])
 
 range_all = max_all - min_all
 range_hours = timesequ * 24
-#print(range_all)
-#print decimal('66.66666666666').quantize(decimal('1e-4'))
-
-#print(mean_i)
-#print("Min o: ")
-#print(min_o)
-#print("Min i: ")
-#print(min_i)
-
-
 
 d_fmt = mdates.DateFormatter('%d.%m.%Y')
 h_fmt1 = mdates.DateFormatter('%H:%M')
 h_fmt2 = mdates.DateFormatter('%H'+' h')
-#print data_i
-#print data_o
-#min_i_txt = "Min (Innen): " + min_i + " °C"
+
 ax = plt.gca()
 data_i.plot(x='measuredatetime', y='temp', color="g", ax=ax, label='Innen')
 data_o.plot(x='measuredatetime', y='temp', color="m", ax=ax, label='Aussen')
 data_w.plot(x='measuredatetime', y='temp', color="b", ax=ax, label='Werkstatt')
-#data_i.setlabel('Innen')
 
 
-#ax.twinx()
+
 if timesequ <= 2:
     days = mdates.DayLocator(interval = 1)
     hours = mdates.HourLocator(interval = 2*timesequ)
     titletxt = 'die letzten '+str(range_hours)+' Stunden:'
     ax.xaxis.set_major_locator(hours)
     ax.xaxis.set_major_formatter(h_fmt1)
-#    ax.xaxis.set_minor_locator(days)
-#    ax.xaxis.set_minor_formatter(d_fmt)
+    plt.text(1,0,'test')
 elif timesequ <= 30:
     days = mdates.DayLocator(interval = 1)
     hours = mdates.HourLocator(byhour=[6,12,18])
@@ -185,20 +153,15 @@ elif timesequ <= 30:
     ax.xaxis.set_major_locator(days)
     ax.xaxis.set_major_formatter(d_fmt)
 else:
-#    days = mdates.DayLocator(interval = 3)
-#    hours = mdates.HourLocator(byhour=[6,12,18])
     titletxt = 'die letzten '+str(timesequ)+' Tage:'
-#    ax.xaxis.set_major_locator(days)
-#    ax.xaxis.set_major_formatter(d_fmt)
-#    ax.xaxis.set_minor_locator(hours)
-#    ax.xaxis.set_minor_formatter(h_fmt2)
+
 
 plt.title(titletxt)
 plt.xlabel('Zeit')
 plt.ylabel('Temperatur (' + u'\N{DEGREE SIGN}' + 'C)')
 ax.get_legend().remove()
 props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=0.7)
-#ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=3)
 
 
