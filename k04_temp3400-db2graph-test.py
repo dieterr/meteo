@@ -49,8 +49,10 @@ mdb_conn = db_connect()
 #Input days
 timesequ = int(sys.argv[1])
 
+
+
 #print('Number of arguments:', len(sys.argv), 'arguments.')
-#print('Argument List:', str(sys.argv))
+print('Argument List:', str(sys.argv))
 #print('Argument List1:', str(sys.argv[1]))
 
 
