@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import netrc
-from pandas import read_sql_query as pdrsq
-#from pandas import DataFrame, Timestamp
+import pandas as pd
+from pandas import read_sql as rsq
 import numpy as np 
-import MySQLdb as mariadb
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -18,22 +19,58 @@ def db_connect():
     try:
         host = 'localhost'
         cred = netrc.netrc().authenticators(host)
-        mdb_conn = mariadb.connect(host, cred[0], cred[2], 'meteo')
+        #print(cred[0],cred[2])
+        url_object = URL.create("mysql+pymysql",
+            username=cred[0],
+            password=cred[2],
+            host=host,
+            database='meteo')
+        engine = create_engine("mysql+pymysql://meteo:8sR9eEVtuY2Xsj5sm1B8@127.0.0.1:3306/meteo")
 
     except:
-        print("I am unable to connect to mariadb database tempdb!")
+        print("I am unable to connect to mariadb database meteodb!")
 
-    return mdb_conn
+    return engine
 
-def read_db_hours(id, ti):
-    df = pdrsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 ORDER BY measuredatetime DESC LIMIT %s;" %(id, ti), mdb_conn)
+
+def read_db_all(lhb, lhe):
+    df_all = rsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND isDeleted = 0 AND measuredatetime BETWEEN NOW() - INTERVAL %s HOUR AND NOW() - INTERVAL %e HOUR ORDER BY measuredatetime;" %(lhb, lhe), engine)
+    df_all.columns = ['measuredatetime', 'temp']
+    return df_all
+
+
+def read_db_hours(id, lhb, lhe):
+    df = rsq("SELECT measuredatetime, measure FROM measurement WHERE parameter_id = 1 AND sensor_id = %i AND isDeleted = 0 AND measuredatetime BETWEEN NOW() - INTERVAL %s HOUR AND NOW() - INTERVAL %e HOUR ORDER BY measuredatetime;" %(id, lhb, lhe), engine)
     df.columns = ['measuredatetime', 'temp']
-    #print(df)
     return df
 
+def statistics(data):
+    min = np.min(data['temp'])
+    max = np.max(data['temp'])
+    mean = round(np.mean(data['temp']),1)
 
-#def
+    return min, max, mean
 
+def draw_tempData(now,old):
+    if timeSequ > 7:
+        # computing a 3 hour rolling average for more than 7 days
+        data_now['rolling'] = now.temp.rolling(12).mean()
+        now.plot(x='measuredatetime', y='rolling', color=sensorList[i][1], ax=axt, label=i)
+        #print(data_now['rolling'])
+    else:
+        # use orignal data
+        now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
+
+    plt.hlines(statistics(data_now)[0], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = '--', color = sensorList[i][1])
+    plt.hlines(statistics(data_now)[1], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = 'solid', color = sensorList[i][1])
+    plt.hlines(statistics(data_now)[2], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = ':', color = sensorList[i][1])
+    min_text = 'Min. ' + format(round(statistics(data_now)[0],1), '.1f') + ' (' + format(round(statistics(data_now)[0] - statistics(data_old)[0],1), '.1f') + ')'
+    max_text = 'Max. ' + format(round(statistics(data_now)[1],1), '.1f') + ' (' + format(round(statistics(data_now)[1] - statistics(data_old)[1],1), '.1f') + ')'
+    mean_text = 'Mw. ' + format(round(statistics(data_now)[2],1), '.1f') + ' (' + format(round(statistics(data_now)[2] - statistics(data_old)[2],1), '.1f') + ')'
+    plt.text(np.min(data_now['measuredatetime']), np.min(data_now['temp'])-(range_all / 18), min_text, color = sensorList[i][1], bbox = props)
+    plt.text(np.max(data_now['measuredatetime']), np.max(data_now['temp'])+(range_all / 18), max_text, color = sensorList[i][1], bbox = props, ha= 'right')
+    plt.text(np.mean(data_now['measuredatetime']), statistics(data_now)[2]+(range_all / 28), mean_text, color = sensorList[i][1], bbox = props, ha = 'center')
+    return
 
 
 #print('Number of arguments:', len(sys.argv), 'arguments.')
@@ -41,169 +78,86 @@ def read_db_hours(id, ti):
 #print('Argument List1:', str(sys.argv[1]))
 
 #Input days
-timesequ = int(sys.argv[1])
-#print('timesequ: ', timesequ)
+timeSequ = int(sys.argv[2])
+#print('timesequ: ', timeSequ)
 
-likedhours1 = timesequ * 24 * 4 
-likedhours = [str(likedhours1), str(likedhours1)+','+str(likedhours1)]
-#print('test', likedhours)
-#mdb_conn = None
-mdb_conn = db_connect()
-#print(mdb_conn)
-##print results
-#likedhours = ['96', '96,96']
-#print('orig: ',likedhours)
+likedHours1Begin = timeSequ * 24
+likedHours1End = 0 
+likedHours2Begin = timeSequ * 24 * 2
+likedHours2End = timeSequ * 24
 
+engine = db_connect()
 
+data_all = read_db_all(likedHours1Begin, likedHours1End)
 
-##get data
-id = 2
-data_i = read_db_hours(id, likedhours[0])
-data_i_b24 = read_db_hours(id, likedhours[1])
+stat = statistics(data_all)
 
-id = 1
-data_o = read_db_hours(id, likedhours[0])
-data_o_b24 = read_db_hours(id, likedhours[1])
-#data_o_roll = DataFrame(read_db_hours(id, likedhours[1]))
-#data_o_roll.set_index(measuredatetime)
-#.resample('1D').mean()
-
-id = 3
-data_w = read_db_hours(id, likedhours[0])
-data_w_b24 = read_db_hours(id, likedhours[1])
-
-
-#print(data_i)
-#print(data_o)
-
-#data_i_array() = np.asarray(data_i)
-#export txt-files
-#data_i_array.tofile('/home/dieter/data/temp-i.txt',sep=';')
-
-## calculate min & mean
-min_i = np.min(data_i['temp'])
-min_o = np.min(data_o['temp'])
-min_w = np.min(data_w['temp'])
-min_i_b24 = np.min(data_i_b24['temp'])
-min_o_b24 = np.min(data_o_b24['temp'])
-min_w_b24 = np.min(data_w_b24['temp'])
-mean_i = np.mean(data_i['temp'])
-mean_o = np.mean(data_o['temp'])
-mean_w = np.mean(data_w['temp'])
-mean_i_b24 = np.mean(data_i_b24['temp'])
-mean_o_b24 = np.mean(data_o_b24['temp'])
-mean_w_b24 = np.mean(data_w_b24['temp'])
-max_i = np.max(data_i['temp'])
-max_o = np.max(data_o['temp'])
-max_w = np.max(data_w['temp'])
-max_i_b24 = np.max(data_i_b24['temp'])
-max_o_b24 = np.max(data_i_b24['temp'])
-max_w_b24 = np.max(data_i_b24['temp'])
-min_all = np.min([min_i, min_o, min_w])
-max_all = np.max([max_i, max_o, max_w])
-
-
+min_all = stat[0]
+max_all = stat[1]
 
 range_all = max_all - min_all
-range_hours = timesequ * 24
-#print(range_all)
-#print decimal('66.66666666666').quantize(decimal('1e-4'))
 
-#print(mean_i)
-#print("Min o: ")
-#print(min_o)
-#print("Min i: ")
-#print(min_i)
+#print("min: ",min_all,"max: ",max_all)
 
+sensorList = {"out":[1,"m"],"in":[2,"g"],"workshop":[3,"b"]}
+
+axt = plt.gca()
+
+props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=0.7)
+
+for i in sensorList:
+    #print("data_"+str(sensorList[i][1]))
+    data_now = read_db_hours(sensorList[i][0], likedHours1Begin, likedHours1End)
+    data_old = read_db_hours(sensorList[i][0], likedHours2Begin, likedHours2End)
+    #data_now['roll'] = data_now['temp'].rolling(12).mean
+    #print(data_now_roll)
+    #print(data_now)
+
+    #print(statistics(data_now))
+    #print("now min: ",statistics(data_now)[0])
+    #if timeSequ > 7:
+    #    data_now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
+    #else:
+    draw_tempData(data_now,data_old)
+    #data_now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
+    
+range_all = max_all - min_all
+range_hours = timeSequ * 24
 
 
 d_fmt = mdates.DateFormatter('%d.%m.%Y')
 h_fmt1 = mdates.DateFormatter('%H:%M')
 h_fmt2 = mdates.DateFormatter('%H'+' h')
-#print data_i
-#print data_o
-#min_i_txt = "Min (Innen): " + min_i + " °C"
-ax = plt.gca()
-data_i.plot(x='measuredatetime', y='temp', color="g", ax=ax, label='Innen')
-data_o.plot(x='measuredatetime', y='temp', color="m", ax=ax, label='Aussen')
-data_w.plot(x='measuredatetime', y='temp', color="b", ax=ax, label='Werkstatt')
-#data_i.setlabel('Innen')
 
-
-#ax.twinx()
-if timesequ <= 2:
+if timeSequ <= 2:
     days = mdates.DayLocator(interval = 1)
-    hours = mdates.HourLocator(interval = 2*timesequ)
+    hours = mdates.HourLocator(interval = 2*timeSequ)
     titletxt = 'die letzten '+str(range_hours)+' Stunden:'
-    ax.xaxis.set_major_locator(hours)
-    ax.xaxis.set_major_formatter(h_fmt1)
-#    ax.xaxis.set_minor_locator(days)
-#    ax.xaxis.set_minor_formatter(d_fmt)
-elif timesequ <= 14:
+    axt.xaxis.set_major_locator(hours)
+    axt.xaxis.set_major_formatter(h_fmt1)
+elif timeSequ <= 14:
     days = mdates.DayLocator(interval = 1)
     hours = mdates.HourLocator(byhour=[6,12,18])
-    titletxt = 'die letzten '+str(timesequ)+' Tage:'
-    ax.xaxis.set_major_locator(days)
-    ax.xaxis.set_major_formatter(d_fmt)
+    titletxt = 'die letzten '+str(timeSequ)+' Tage:'
+    axt.xaxis.set_major_locator(days)
+    axt.xaxis.set_major_formatter(d_fmt)
 else:
-#    days = mdates.DayLocator(interval = 3)
-#    hours = mdates.HourLocator(byhour=[6,12,18])
-    titletxt = 'die letzten '+str(timesequ)+' Tage:'
-#    ax.xaxis.set_major_locator(days)
-#    ax.xaxis.set_major_formatter(d_fmt)
-#    ax.xaxis.set_minor_locator(hours)
-#    ax.xaxis.set_minor_formatter(h_fmt2)
+    titletxt = 'die letzten '+str(timeSequ)+' Tage:'
 
 plt.title(titletxt)
 plt.xlabel(' ')
 #plt.xticks([])
 plt.ylabel('Temperatur (' + u'\N{DEGREE SIGN}' + 'C)')
-ax.get_legend().remove()
-props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=0.7)
+axt.get_legend().remove()
 #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=3)
 
 
-if min_o > 0:
-    ax.set_ylim(0)
-
-plt.hlines(np.min(data_i['temp']), np.min(data_i['measuredatetime']), np.max(data_i['measuredatetime']), linestyle = '--', color = 'g')
-plt.hlines(np.max(data_i['temp']), np.min(data_i['measuredatetime']), np.max(data_i['measuredatetime']), linestyle = 'solid', color = 'g')
-plt.hlines(np.min(data_o['temp']), np.min(data_o['measuredatetime']), np.max(data_o['measuredatetime']), linestyle = '--', color = 'm')
-plt.hlines(np.max(data_o['temp']), np.min(data_o['measuredatetime']), np.max(data_o['measuredatetime']), linestyle = 'solid', color = 'm')
-plt.hlines(np.min(data_w['temp']), np.min(data_w['measuredatetime']), np.max(data_w['measuredatetime']), linestyle = '--', color = 'b')
-plt.hlines(np.max(data_w['temp']), np.min(data_w['measuredatetime']), np.max(data_w['measuredatetime']), linestyle = 'solid', color = 'b')
-plt.hlines(mean_i, np.min(data_i['measuredatetime']), np.max(data_i['measuredatetime']), linestyle = ':', color = 'g')
-plt.hlines(mean_o, np.min(data_o['measuredatetime']), np.max(data_o['measuredatetime']), linestyle = ':', color = 'm')
-plt.hlines(mean_w, np.min(data_w['measuredatetime']), np.max(data_w['measuredatetime']), linestyle = ':', color = 'b')
-
-
-min_i_text = 'Min. ' + format(round(min_i,1), '.1f') + ' (' + format(round(min_i - min_i_b24,1), '.1f') + ')'
-max_i_text = 'Max. ' + format(round(max_i,1), '.1f') + ' (' + format(round(max_i - max_i_b24,1), '.1f') + ')'
-mean_i_text = 'Mw. ' + format(round(mean_i,1), '.1f') + ' (' + format(round(mean_i - mean_i_b24,1), '.1f') + ')'
-plt.text(np.min(data_i['measuredatetime']), np.min(data_i['temp'])-(range_all / 18), min_i_text, color = 'g', bbox = props)
-plt.text(np.min(data_i['measuredatetime']), np.max(data_i['temp'])+(range_all / 18), max_i_text, color = 'g', bbox = props)
-plt.text(np.max(data_i['measuredatetime']), mean_i+(range_all / 28), mean_i_text, color = 'g', bbox = props, ha = 'right')
-
-
-min_o_text = 'Min. ' + format(round(min_o,1), '.1f') + ' (' + format(round(min_o - min_o_b24,1), '.1f') + ')'
-max_o_text = 'Max. ' + format(round(max_o,1), '.1f') + ' (' + format(round(max_o - max_o_b24,1), '.1f') + ')'
-mean_o_text = 'Mw. ' + format(round(mean_o,1), '.1f') + ' (' + format(round(mean_o - mean_o_b24,1), '.1f') + ')'
-plt.text(np.min(data_o['measuredatetime']), np.min(data_o['temp'])-(range_all / 18), min_o_text, color = 'm', bbox = props, ha = 'left')
-plt.text(np.min(data_o['measuredatetime']), np.max(data_o['temp'])+(range_all / 18), max_o_text, color = 'm', bbox = props, ha = 'left')
-plt.text(np.max(data_o['measuredatetime']), mean_o+(range_all / 28), mean_o_text, color = 'm', bbox = props, ha = 'right')
-
-min_w_text = 'Min. ' + format(round(min_w,1), '.1f') + ' (' + format(round(min_w - min_w_b24,1), '.1f') + ')'
-max_w_text = 'Max. ' + format(round(max_w,1), '.1f') + ' (' + format(round(max_w - max_w_b24,1), '.1f') + ')'
-mean_w_text = 'Mw. ' + format(round(mean_w,1), '.1f') + ' (' + format(round(mean_w - mean_w_b24,1), '.1f') + ')'
-plt.text(np.min(data_w['measuredatetime']), np.min(data_w['temp'])-(range_all / 18), min_w_text, color = 'b', bbox = props, ha = 'left')
-plt.text(np.min(data_w['measuredatetime']), np.max(data_w['temp'])+(range_all / 18), max_w_text, color = 'b', bbox = props, ha = 'left')
-plt.text(np.max(data_w['measuredatetime']), mean_w+(range_all / 28)+(timesequ/10), mean_w_text, color = 'b', bbox = props, ha = 'right')
-
+if min_all > 0:
+    axt.set_ylim(0)
 
 #plt.axhline(0, color = 'k', linewidth = 0.5)
 #plt.text(np.min(data_w['measuredatetime']), mean_w+(range_all / 28)+(timesequ/10), "GitTest", color = 'k', bbox = props, ha = 'right')
 
-
-pltname = '/tmp/temp'+str(timesequ)+'.png'
+pltname = '/home/dieter/temp'+str(timeSequ)+'.png'
 plt.savefig(pltname)
