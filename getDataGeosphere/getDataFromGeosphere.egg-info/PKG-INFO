@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: getDataFromGeosphere
+Version: 1.0.0
+Summary: A package for fetching meteorological data from Geosphere AT
+Author: Dieter Riegler
+Author-email: dieter@garageland.at
+Requires-Python: >=3.6

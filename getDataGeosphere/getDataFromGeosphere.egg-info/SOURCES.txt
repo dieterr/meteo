@@ -1,0 +1,6 @@
+setup.py
+getDataFromGeosphere.egg-info/PKG-INFO
+getDataFromGeosphere.egg-info/SOURCES.txt
+getDataFromGeosphere.egg-info/dependency_links.txt
+getDataFromGeosphere.egg-info/requires.txt
+getDataFromGeosphere.egg-info/top_level.txt
