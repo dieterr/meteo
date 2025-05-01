@@ -1,66 +1,53 @@
-/* CALL meteo.insertTempDatscha(
-	'10-000802a827d4',
-	1,
-	'2022-10-14 04:15:05',
-	0) */
+-- DELIMITER //
+DROP PROCEDURE insertTempDatscha;
 
-
-DELIMITER //
-
-CREATE OR REPLACE PROCEDURE insertTempDatscha(
-	IN sensorNameIn VARCHAR(50),
-	IN parameterIDIn SMALLINT,
-	IN measuredatetimeIn DATETIME,
-  	IN toUpdate BIT -- DEFAULT = 0
-  	)
-
+CREATE PROCEDURE insertTempDatscha(
+sensornameIn VARCHAR(50),
+measuredatetimeIn DATETIME,
+parameteridIn SMALLINT(5),
+measureIn DECIMAL(4,1)
+)
 BEGIN
 
-DECLARE sensorID SMALLINT;
+SET @sensorId = 'test';
+SET @toUpdate = 0;
 
-SET toUpdate = 0;
-
-SELECT sensorNameIn;
+SELECT @sensorId;
 
 SELECT se.id
-INTO sensorID
+INTO @sensorId
 FROM sensor AS se
-WHERE se.name = sensorNameIn;
+WHERE se.name = sensornameIn;
 
-SELECT sensorId;
+SELECT @sensorId;
 
-SELECT me.id
-	,me.measuredatetime 
-FROM measurement AS me
-WHERE me.sensor_id = sensorID
-      AND me.parameter_id = parameterIDIn
-      AND DATE(me.measuredatetime) = DATE(measuredatetimeIn)
-      AND HOUR(me.measuredatetime) = MINUTE(measuredatetimeIn)
-      AND MINUTE(me.measuredatetime) = MINUTE(measuredatetimeIn);
+-- SELECT IF((
+-- SELECT me.id
+-- FROM measurement AS me
+-- WHERE me.sensor_id = @sensorId
+--       AND me.parameter_id = parameteridIn
+--       AND me.measuredatetime = measuredatetimeIn;)=NULL
+--       ,'test','bla');
 
-
-SELECT IF (
-(SELECT me.id
-FROM measurement AS me
-WHERE me.sensor_id = sensorID
-      AND me.parameter_id = parameterIDIn
-      AND me.measuredatetime = measuredatetimeIn) IS NULL , 'ok', 'nok');
-
-
-     
-      #AND HOUR(me.measuredatetime) = MINUTE(measuredatetimeIn)
-      #AND MINUTE(me.measuredatetime) = MINUTE(measuredatetimeIn)
-     
-      # THEN SELECT 'got it!'
-
-      # END IF;
-
-# BEGIN
-#	SELECT 'test';
-# END;
-      
+-- BEGIN
+-- 	SELECT 'test'
 END;
 
-//
+-- //
 
-DELIMITER ;
+-- DELIMITER ;
+
+
+
+/*
+select routine_schema as meteodb,
+       routine_name,
+       routine_type as type,
+       data_type as return_type,
+       routine_definition as definition
+from information_schema.routines
+where routine_schema not in ('sys', 'information_schema',
+       'mysql', 'performance_schema')
+       -- and r.routine_schema = 'database_name' -- put your database name here
+order by routine_schema, routine_name;
+*/
