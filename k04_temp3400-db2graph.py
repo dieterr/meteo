@@ -53,7 +53,6 @@ def statistics(data):
     mean = round(np.mean(data['temp']),1)
 
     return min, max, mean
-<<<<<<< HEAD
 
 def draw_tempData(now,old):
     if timeSequ > 7:
@@ -97,8 +96,6 @@ class getDataFromGrid():
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON for grid data: {e}")
             self.rawData = None
-=======
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
 
 def draw_tempData(now,old):
     if timeSequ > 7:
@@ -151,7 +148,7 @@ print('Number of arguments:', len(sys.argv), 'arguments.')
 
 #Input days
 timeSequ = int(sys.argv[2])
-<<<<<<< HEAD
+
 #print(timeSequ)
 
 local_timezone = datetime.datetime.now().astimezone().tzinfo
@@ -161,20 +158,17 @@ localStartDateTime = datetime.datetime.strptime(str(datetime.datetime.now() - re
 localEndDateTime = datetime.datetime.strptime(str(datetime.datetime.now()), "%Y-%m-%d %H:%M:%S.%f").replace(tzinfo=local_timezone).strftime("%Y-%m-%dT%H:%M")
 utcStartDateTime = datetime.datetime.strptime(localStartDateTime, "%Y-%m-%dT%H:%M").replace(tzinfo=local_timezone).astimezone(datetime.timezone.utc)
 utcEndDateTime = datetime.datetime.strptime(localEndDateTime, "%Y-%m-%dT%H:%M").replace(tzinfo=local_timezone).astimezone(datetime.timezone.utc)
-=======
+
 #print('timesequ: ', timeSequ)
 
 likedHours1Begin = timeSequ * 24
 likedHours1End = 0 
 likedHours2Begin = timeSequ * 24 * 2
 likedHours2End = timeSequ * 24
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
 
 engine = db_connect()
 
 data_all = read_db_all(likedHours1Begin, likedHours1End)
-
-<<<<<<< HEAD
 
 geosphere_objects = []
 
@@ -248,10 +242,8 @@ data_all = read_db_all(likedHours1Begin, likedHours1End)
 
 stat = statistics(data_all)
 
-=======
 stat = statistics(data_all)
 
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
 min_all = stat[0]
 max_all = stat[1]
 
@@ -266,36 +258,27 @@ axt = plt.gca()
 props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=0.7)
 
 for i in sensorList:
-<<<<<<< HEAD
     #print("data_"+str(sensorList[i][0]))
-=======
     #print("data_"+str(sensorList[i][1]))
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
     data_now = read_db_hours(sensorList[i][0], likedHours1Begin, likedHours1End)
     data_old = read_db_hours(sensorList[i][0], likedHours2Begin, likedHours2End)
     #data_now['roll'] = data_now['temp'].rolling(12).mean
     #print(data_now_roll)
-<<<<<<< HEAD
     # print(data_now)
     # print(data_old)
     if data_now.empty or data_old.empty:
         next
     else:
         draw_tempData(data_now,data_old)
-=======
     #print(data_now)
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
 
     #print(statistics(data_now))
     #print("now min: ",statistics(data_now)[0])
     #if timeSequ > 7:
     #    data_now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
     #else:
-<<<<<<< HEAD
-    
-=======
+
     draw_tempData(data_now,data_old)
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
     #data_now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
     
 range_all = max_all - min_all
@@ -320,7 +303,6 @@ elif timeSequ <= 14:
     axt.xaxis.set_major_formatter(d_fmt)
 else:
     titletxt = 'die letzten '+str(timeSequ)+' Tage:'
-<<<<<<< HEAD
 
 
 
@@ -329,18 +311,16 @@ if geosphere_dataframes['Klosterneuburg Laube'].empty == True:
 else:
     geosphere_dataframes['Klosterneuburg Laube'].plot(x='time', y='temp', color='black', ax=axt, label='GeoSphere INCA hourly', linewidth=1.5)
 
-=======
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
 
 plt.title(titletxt)
 plt.xlabel('Zeit')
 #plt.xticks([])
 plt.ylabel('Temperatur (' + u'\N{DEGREE SIGN}' + 'C)')
-<<<<<<< HEAD
+
 #axt.get_legend().remove()
-=======
+
 axt.get_legend().remove()
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
+
 #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=4)
@@ -348,7 +328,6 @@ plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=4)
 if min_all > 0:
     axt.set_ylim(0)
 
-<<<<<<< HEAD
 plt.axhline(0, color = 'k', linewidth = 0.5)
 
 # Example usage
@@ -364,10 +343,8 @@ if 'out' in sensorList and 'Klosterneuburg Laube' in geosphere_dataframes:
 
 pltname = '/home/dieter/temp'+str(timeSequ)+'.png'
 plt.savefig(pltname)
-=======
 #plt.axhline(0, color = 'k', linewidth = 0.5)
 #plt.text(np.min(data_w['measuredatetime']), mean_w+(range_all / 28)+(timesequ/10), "GitTest", color = 'k', bbox = props, ha = 'right')
 
 pltname = '/home/dieter/temp'+str(timeSequ)+'.png'
 plt.savefig(pltname)
->>>>>>> 49d7f22e44d7d430e66f8147090e5221f86887a8
