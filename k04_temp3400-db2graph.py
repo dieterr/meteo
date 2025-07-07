@@ -59,22 +59,22 @@ def draw_tempData(now,old):
         # computing a 3 hour rolling average for more than 7 days
         data_now['rolling'] = now.temp.rolling(12).mean()
         now.plot(x='measuredatetime', y='rolling', color=sensorList[i][1], ax=axt, label=i)
+        #print(data_now['rolling'])
     else:
+        # use orignal data
         now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
 
     plt.hlines(statistics(data_now)[0], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = '--', color = sensorList[i][1])
     plt.hlines(statistics(data_now)[1], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = 'solid', color = sensorList[i][1])
     plt.hlines(statistics(data_now)[2], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = ':', color = sensorList[i][1])
-
     min_text = 'Min. ' + format(round(statistics(data_now)[0],1), '.1f') + ' (' + format(round(statistics(data_now)[0] - statistics(data_old)[0],1), '.1f') + ')'
     max_text = 'Max. ' + format(round(statistics(data_now)[1],1), '.1f') + ' (' + format(round(statistics(data_now)[1] - statistics(data_old)[1],1), '.1f') + ')'
     mean_text = 'Mw. ' + format(round(statistics(data_now)[2],1), '.1f') + ' (' + format(round(statistics(data_now)[2] - statistics(data_old)[2],1), '.1f') + ')'
-    
     plt.text(np.min(data_now['measuredatetime']), np.min(data_now['temp'])-(range_all / 18), min_text, color = sensorList[i][1], bbox = props)
     plt.text(np.max(data_now['measuredatetime']), np.max(data_now['temp'])+(range_all / 18), max_text, color = sensorList[i][1], bbox = props, ha= 'right')
     plt.text(np.mean(data_now['measuredatetime']), statistics(data_now)[2]+(range_all / 28), mean_text, color = sensorList[i][1], bbox = props, ha = 'center')
-    
     return
+
 
 class getDataFromGrid():
 
@@ -97,26 +97,6 @@ class getDataFromGrid():
             print(f"Error decoding JSON for grid data: {e}")
             self.rawData = None
 
-def draw_tempData(now,old):
-    if timeSequ > 7:
-        # computing a 3 hour rolling average for more than 7 days
-        data_now['rolling'] = now.temp.rolling(12).mean()
-        now.plot(x='measuredatetime', y='rolling', color=sensorList[i][1], ax=axt, label=i)
-        #print(data_now['rolling'])
-    else:
-        # use orignal data
-        now.plot(x='measuredatetime', y='temp', color=sensorList[i][1], ax=axt, label=i)
-
-    plt.hlines(statistics(data_now)[0], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = '--', color = sensorList[i][1])
-    plt.hlines(statistics(data_now)[1], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = 'solid', color = sensorList[i][1])
-    plt.hlines(statistics(data_now)[2], np.min(data_now['measuredatetime']), np.max(data_now['measuredatetime']), linestyle = ':', color = sensorList[i][1])
-    min_text = 'Min. ' + format(round(statistics(data_now)[0],1), '.1f') + ' (' + format(round(statistics(data_now)[0] - statistics(data_old)[0],1), '.1f') + ')'
-    max_text = 'Max. ' + format(round(statistics(data_now)[1],1), '.1f') + ' (' + format(round(statistics(data_now)[1] - statistics(data_old)[1],1), '.1f') + ')'
-    mean_text = 'Mw. ' + format(round(statistics(data_now)[2],1), '.1f') + ' (' + format(round(statistics(data_now)[2] - statistics(data_old)[2],1), '.1f') + ')'
-    plt.text(np.min(data_now['measuredatetime']), np.min(data_now['temp'])-(range_all / 18), min_text, color = sensorList[i][1], bbox = props)
-    plt.text(np.max(data_now['measuredatetime']), np.max(data_now['temp'])+(range_all / 18), max_text, color = sensorList[i][1], bbox = props, ha= 'right')
-    plt.text(np.mean(data_now['measuredatetime']), statistics(data_now)[2]+(range_all / 28), mean_text, color = sensorList[i][1], bbox = props, ha = 'center')
-    return
 
 class GeosphereData:
     def __init__(self, name, raw_data):
