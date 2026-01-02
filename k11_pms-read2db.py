@@ -25,8 +25,8 @@ uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=0.25)
 ## set up database connection
 def db_connect():
     try:
-        host = 'kuerbis04'
-        host_ip = '192.168.0.13'
+        host = 'localhost'
+        host_ip = '172.0.0.1'
         cred = netrc.netrc().authenticators(host)
         #print(cred)
         mdb_conn = mariadb.connect(host_ip, cred[0], cred[2], 'meteo')
@@ -83,6 +83,7 @@ while True:
     timestamp = time.strftime("%y-%m-%d %H:%M:%S")
     for sensorid in sensors:
         mcursor_measurement_insert = mdb_conn.cursor()
+        sql_insert_measurement_new = """INSERT INTO measurement (sensor_id, parameter_id, measuredatetime, measure) VALUES (%s, %s, %s, %s);"""
         sql_insert_measurement = """INSERT INTO measurement (sensor_id, parameter_id, measuredatetime, measure) VALUES (%s, %s, %s, %s);"""
         #print(pm10_env)
         inserttuple = (6, sensorid, timestamp, float(sensors[sensorid]))
